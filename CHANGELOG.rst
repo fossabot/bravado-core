@@ -1,12 +1,19 @@
 Changelog
 =========
 
-4.13.0 (xxxx-xx-xx)
+5.x.x (xxxx-xx-xx)
 -------------------
 - Models are generated only for objects - PR #246
 - Fix: ensure that models does not have references if ``internally_dereference_refs`` is used - PR # 247
 - Model name detection uses title attribute too - PR #249
 - Duplicated models do not raise exception if ``use_models`` is not used - PR #253
+- Refactor: model discovery is now handled in ``bravado_core.model``
+- Remove deprecated methods from Model type
+
+.. warning::
+    This change provides breaking changes!!!
+    The following methods have been removed from the public interface: ``bravado_core.model.tag_models``, ``bravado_core.model.bless_models``, ``bravado_core.model.collect_models`` and ``bravado_core.spec.post_process_spec``.
+    Deprecated methods from ``bravado_core.model.Model`` have been removed (``Model.marshal``, ``Model.unmarshal``, ``Model.isinstance`` and ``Model._isinstance``).
 
 4.12.1 (2018-02-07)
 -------------------
