@@ -2,9 +2,9 @@
 import copy
 import inspect
 import re
+from enum import Enum
 from functools import wraps
 
-from enum import Enum
 from six import iteritems
 from six import iterkeys
 
