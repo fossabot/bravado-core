@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 import copy
 import inspect
+import os
 import re
 from enum import Enum
 from functools import wraps
 
 from six import iteritems
 from six import iterkeys
+from six.moves.urllib.parse import urlparse
+from six.moves.urllib.parse import urlunparse
 
 from bravado_core.schema import is_dict_like
 from bravado_core.schema import is_list_like
@@ -192,3 +195,9 @@ def strip_xscope(spec_dict):
 
     descend(result)
     return result
+
+
+def get_absolute_reference_uri(reference_uri):
+    scheme, netloc, url, params, query, fragment = urlparse(reference_uri)
+    url = os.path.abspath(url)
+    return urlunparse((scheme, netloc, url, params, query, fragment))

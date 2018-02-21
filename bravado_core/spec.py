@@ -30,6 +30,7 @@ from bravado_core.schema import is_ref
 from bravado_core.security_definition import SecurityDefinition
 from bravado_core.spec_flattening import flattened_spec
 from bravado_core.util import cached_property
+from bravado_core.util import get_absolute_reference_uri
 from bravado_core.util import memoize_by_id
 from bravado_core.util import strip_xscope
 
@@ -90,7 +91,7 @@ class Spec(object):
     def __init__(self, spec_dict, origin_url=None, http_client=None,
                  config=None):
         self.spec_dict = spec_dict
-        self.origin_url = origin_url
+        self.origin_url = get_absolute_reference_uri(origin_url) if origin_url else None
         self.http_client = http_client
         self.api_url = None
         self.config = dict(CONFIG_DEFAULTS, **(config or {}))
