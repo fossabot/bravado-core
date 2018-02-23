@@ -25,7 +25,7 @@ def test_tags_model(minimal_swagger_dict, pet_model_spec):
     _tag_models(
         minimal_swagger_dict['definitions'],
         'Pet',
-        ['definitions', 'Pet'],
+        '#/definitions/Pet',
         visited_models={},
         swagger_spec=swagger_spec)
     assert pet_model_spec['x-model'] == 'Pet'
@@ -38,7 +38,7 @@ def test_type_missing(minimal_swagger_dict, pet_model_spec):
     _tag_models(
         minimal_swagger_dict['definitions'],
         'Pet',
-        ['definitions', 'Pet'],
+        '#/definitions/Pet',
         visited_models={},
         swagger_spec=swagger_spec)
     assert 'x-model' not in pet_model_spec
@@ -55,7 +55,7 @@ def test_model_not_object(minimal_swagger_dict):
     _tag_models(
         minimal_swagger_dict['definitions'],
         'Pet',
-        ['definitions', 'Pet'],
+        '#/definitions/Pet',
         visited_models={},
         swagger_spec=swagger_spec)
     assert 'x-model' not in minimal_swagger_dict['definitions']['Pet']
@@ -67,7 +67,7 @@ def test_path_too_short(minimal_swagger_dict, pet_model_spec):
     _tag_models(
         minimal_swagger_dict,
         'definitions',
-        ['definitions'],
+        '#/definitions',
         visited_models={},
         swagger_spec=swagger_spec)
     assert 'x-model' not in pet_model_spec
@@ -79,20 +79,26 @@ def test_duplicate_model(mock_log, minimal_swagger_dict, pet_model_spec, use_mod
     minimal_swagger_dict['definitions']['Pet'] = pet_model_spec
     swagger_spec = Spec(minimal_swagger_dict, config={'use_models': use_models})
 
-    duplicate_message = 'Duplicate "Pet" model found at path [\'definitions\', \'Pet\']. ' \
-                        'Original "Pet" model at path [\'definitions\', \'Pet\']'
+    new_path = '#/definitions/Pet'
+    old_path = '#/definitions/OldPet'
 
     raised_exception = None
     try:
         _tag_models(
             minimal_swagger_dict['definitions'],
             'Pet',
-            ['definitions', 'Pet'],
-            visited_models={'Pet': ['definitions', 'Pet']},
+            new_path,
+            visited_models={'Pet': old_path},
             swagger_spec=swagger_spec,
         )
     except ValueError as e:
         raised_exception = e
+
+    duplicate_message = 'Duplicate "Pet" model found at path {new_path}. ' \
+                        'Original "Pet" model at path {old_path}'.format(
+                            new_path=new_path,
+                            old_path=old_path,
+                        )
 
     if use_models:
         assert str(raised_exception) == duplicate_message
@@ -109,7 +115,7 @@ def test_skip_already_tagged_models(minimal_swagger_dict, pet_model_spec):
     _tag_models(
         minimal_swagger_dict['definitions'],
         'Pet',
-        ['definitions', 'Pet'],
+        '#/definitions/Pet',
         visited_models={},
         swagger_spec=swagger_spec)
     assert pet_model_spec['x-model'] == 'SpecialPet'

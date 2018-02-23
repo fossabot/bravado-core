@@ -28,7 +28,7 @@ def test_single_key():
         on_container_callbacks=[callback],
     )
     assert callback.call_count == 1
-    callback.assert_called_once_with(spec_dict, 'definitions', ['definitions'])
+    callback.assert_called_once_with(spec_dict, 'definitions', '#/definitions')
 
 
 def test_visits_refs_only_once():

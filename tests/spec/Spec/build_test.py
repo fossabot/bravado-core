@@ -10,11 +10,12 @@ from tests.validate.conftest import email_address_format
 
 
 def assert_validate_call_count(expected_call_count, config, petstore_dict):
-    spec = Spec(petstore_dict, config=config)
-    with patch('bravado_core.spec.validator20.validate_spec') as m_validate:
-        spec.deref = Mock(return_value={})
-        spec.build()
-    assert expected_call_count == m_validate.call_count
+    with patch('bravado_core.spec.model_discovery', autospec=True):
+        spec = Spec(petstore_dict, config=config)
+        with patch('bravado_core.spec.validator20.validate_spec') as m_validate:
+            spec.deref = Mock(return_value={})
+            spec.build()
+        assert expected_call_count == m_validate.call_count
 
 
 def test_validate_swagger_spec(petstore_dict):
@@ -159,8 +160,8 @@ def test_build_raises_in_case_of_duplicated_models_in_definitions(minimal_swagge
     expected_exception_string = (
         'Duplicate "model" model found at path {new_path}. '
         'Original "model" model at path {old_path}'.format(
-            new_path=['definitions', 'model'],
-            old_path=['definitions', 'duplicated_model'],
+            new_path='#/definitions/model',
+            old_path='#/definitions/duplicated_model',
         )
     )
     assert expected_exception_string == str(exinfo.value)
@@ -208,7 +209,7 @@ def test_build_raises_in_case_of_duplicated_models_in_paths(minimal_swagger_dict
             mod_name=model_name,
             MODEL_MARKER='x-model',
             new_model=model_201,
-            path=['paths', '/endpoint', 'get', 'responses', '201', 'schema', 'x-model'],
+            path='#/paths//endpoint/get/responses/201/schema/x-model',
         )
     )
 
@@ -255,7 +256,7 @@ def test_build_raises_in_case_of_duplicated_models_between_paths_and_definitions
             mod_name=model_name,
             MODEL_MARKER='x-model',
             new_model=response_model,
-            path=['paths', '/endpoint', 'get', 'responses', '200', 'schema', 'x-model'],
+            path='#/paths//endpoint/get/responses/200/schema/x-model',
         )
     )
 

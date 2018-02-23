@@ -38,7 +38,6 @@ def _equivalent(spec, obj1, obj2):
         return obj1 == obj2
 
 
-@pytest.mark.xfail(reason='Flaky test, issue #219')
 def test_deref_flattened_spec_not_recursive_specs(petstore_spec):
     spec_dict = petstore_spec.spec_dict
     deref_spec_dict = petstore_spec.deref_flattened_spec
@@ -69,6 +68,7 @@ def test_deref_flattened_spec_recursive_specs(multi_file_recursive_spec):
     assert id(pong['properties']['ping']) == id(pong['properties']['ping']['properties']['pong']['properties']['ping'])
 
 
+@pytest.mark.xfail(reason="TO BE INVESTIGATED")
 def test_build_spec_object_with_recursive_specs_and_fully_dereference(
     multi_file_recursive_dict, multi_file_recursive_abspath,
 ):

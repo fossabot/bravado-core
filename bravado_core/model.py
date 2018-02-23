@@ -669,35 +669,32 @@ def _post_process_spec(spec_dict, spec_resolver, on_container_callbacks, descend
         func.cache = cache = set()
 
         @functools.wraps(func)
-        def wrapper(fragment, path, *args, **kwargs):
+        def wrapper(fragment, path):
+            if path in cache:
+                log.debug('Already visited path %s', path)
+                return
+
             is_reference = is_ref(fragment)
             if is_reference:
                 ref = fragment['$ref']
                 attach_scope(fragment, spec_resolver)
-                with spec_resolver.resolving(ref) as target:
+                with spec_resolver.resolving(ref):
                     reference_uri = spec_resolver.resolution_scope
-                    if id(target) in cache:
-                        log.debug('Already visited %s', ref)
-                        return
+                    # FIX this is super ugly
+                    parent_reference = '/'.join(reference_uri.split('/')[:-1])
+                    with spec_resolver.resolving(parent_reference) as parent_target:
+                        return wrapper(parent_target, parent_reference)
 
-                    return wrapper(target, reference_uri, *args, **kwargs)
-
-            # fragment is guaranteed not to be a ref from this point onwards
-            fragment_id = id(fragment)
-
-            if fragment_id in cache:
-                log.debug('Already visited id %d', fragment_id)
-                return
-
-            cache.add(id(fragment))
-            func(fragment, path, *args, **kwargs)
+            cache.add(path)
+            func(fragment, path)
         return wrapper
 
     @skip_already_visited_fragments
     def descend(fragment, path):
         """
         :param fragment: node in spec_dict
-        :param path: list of strings that form the current path to fragment
+        :param path: JSON reference string
+        :type path: str
         """
         if is_dict_like(fragment):
             for key in sorted(fragment):
