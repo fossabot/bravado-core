@@ -2,6 +2,7 @@
 import abc
 import functools
 import logging
+import re
 
 import six
 from six import iteritems
@@ -24,6 +25,8 @@ log = logging.getLogger(__name__)
 # differentiated from 'object' types.
 MODEL_MARKER = 'x-model'
 
+_DEFINITION_FRAGMENT_REGEX = re.compile('^[^#]*#/definitions/[^/]+$')
+
 
 def _get_model_name(model_dict):
     """Determine model name from model dictionary representation and Swagger Path"""
@@ -45,8 +48,8 @@ def _register_visited_model(path, model_spec, model_name, visited_models, is_ble
     """
     Registers a model that has been tagged by a callback method.
 
-    :param path: list of path segments to the key
-    :type path: list
+    :param path: JSON reference string
+    :type path: str
     :param model_spec: swagger specification of the model
     :type model_spec: dict
     :param model_name: name of the model to register
@@ -90,11 +93,12 @@ def _tag_models(container, key, path, visited_models, swagger_spec):
 
     :param container: container being visited
     :param key: attribute in container being visited as a string
-    :param path: list of path segments to the key
+    :param path: JSON reference string
+    :type path: str
     :type visited_models: dict (k,v) == (model_name, path)
     :type swagger_spec: :class:`bravado_core.spec.Spec`
     """
-    if len(path) < 2 or path[-2] != 'definitions':
+    if not _DEFINITION_FRAGMENT_REGEX.match(path):
         return
     deref = swagger_spec.deref
     model_spec = deref(container.get(key))
@@ -133,7 +137,8 @@ def _bless_models(container, key, path, visited_models, swagger_spec):
 
     :param container: container being visited
     :param key: attribute in container being visited as a string
-    :param path: list of path segments to the key
+    :param path: JSON reference string
+    :type path: str
     :type visited_models: dict (k,v) == (model_name, path)
     :type swagger_spec: :class:`bravado_core.spec.Spec`
     """
@@ -180,7 +185,8 @@ def _collect_models(container, key, path, models, swagger_spec):
 
     :param container: container being visited
     :param key: attribute in container being visited as a string
-    :param path: list of path segments to the key
+    :param path: JSON reference string
+    :type path: str
     :param models: created model types are placed here
     :type swagger_spec: :class:`bravado_core.spec.Spec`
     """
@@ -628,7 +634,7 @@ def create_model_docstring(swagger_spec, model_spec):
     return s
 
 
-def _post_process_spec(spec_dict, spec_resolver, on_container_callbacks, descend_path=None):
+def _post_process_spec(spec_dict, spec_resolver, on_container_callbacks, descend_path='#'):
     """Post-process the passed in swagger_spec.spec_dict.
 
     For each container type (list or dict) that is traversed in spec_dict,
@@ -663,18 +669,18 @@ def _post_process_spec(spec_dict, spec_resolver, on_container_callbacks, descend
         func.cache = cache = set()
 
         @functools.wraps(func)
-        def wrapper(fragment, path=None, *args, **kwargs):
+        def wrapper(fragment, path, *args, **kwargs):
             is_reference = is_ref(fragment)
             if is_reference:
                 ref = fragment['$ref']
                 attach_scope(fragment, spec_resolver)
                 with spec_resolver.resolving(ref) as target:
+                    reference_uri = spec_resolver.resolution_scope
                     if id(target) in cache:
                         log.debug('Already visited %s', ref)
                         return
 
-                    func(target, path, *args, **kwargs)
-                    return
+                    return wrapper(target, reference_uri, *args, **kwargs)
 
             # fragment is guaranteed not to be a ref from this point onwards
             fragment_id = id(fragment)
@@ -695,15 +701,17 @@ def _post_process_spec(spec_dict, spec_resolver, on_container_callbacks, descend
         """
         if is_dict_like(fragment):
             for key in sorted(fragment):
+                target_path = '{path}/{key}'.format(path=path, key=key)
                 value = fragment[key]
-                fire_callbacks(fragment, key, path + [key])
-                descend(value, path + [key])
+                fire_callbacks(fragment, key, target_path)
+                descend(value, target_path)
 
         elif is_list_like(fragment):
             for index in range(len(fragment)):
+                target_path = '{path}/{key}'.format(path=path, key=index)
                 value = fragment[index]
-                fire_callbacks(fragment, index, path + [str(index)])
-                descend(value, path + [str(index)])
+                fire_callbacks(fragment, index, target_path)
+                descend(value, target_path)
 
     try:
         descend(spec_dict, path=descend_path)
