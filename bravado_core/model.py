@@ -663,7 +663,7 @@ def _post_process_spec(spec_dict, spec_resolver, on_container_callbacks, descend
         func.cache = cache = set()
 
         @functools.wraps(func)
-        def wrapper(fragment, *args, **kwargs):
+        def wrapper(fragment, path=None, *args, **kwargs):
             is_reference = is_ref(fragment)
             if is_reference:
                 ref = fragment['$ref']
@@ -673,7 +673,7 @@ def _post_process_spec(spec_dict, spec_resolver, on_container_callbacks, descend
                         log.debug('Already visited %s', ref)
                         return
 
-                    func(target, *args, **kwargs)
+                    func(target, path, *args, **kwargs)
                     return
 
             # fragment is guaranteed not to be a ref from this point onwards
@@ -684,7 +684,7 @@ def _post_process_spec(spec_dict, spec_resolver, on_container_callbacks, descend
                 return
 
             cache.add(id(fragment))
-            func(fragment, *args, **kwargs)
+            func(fragment, path, *args, **kwargs)
         return wrapper
 
     @skip_already_visited_fragments
