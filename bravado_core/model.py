@@ -5,6 +5,7 @@ import logging
 
 import six
 from six import iteritems
+from six.moves import range
 from swagger_spec_validator.ref_validators import attach_scope
 
 from bravado_core.schema import collapsed_properties
@@ -15,6 +16,7 @@ from bravado_core.schema import SWAGGER_PRIMITIVES
 from bravado_core.util import determine_object_type
 from bravado_core.util import ObjectType
 from bravado_core.util import strip_xscope
+
 
 log = logging.getLogger(__name__)
 
@@ -692,14 +694,16 @@ def _post_process_spec(spec_dict, spec_resolver, on_container_callbacks, descend
         :param path: list of strings that form the current path to fragment
         """
         if is_dict_like(fragment):
-            for key, value in sorted(iteritems(fragment)):
+            for key in sorted(fragment):
+                value = fragment[key]
                 fire_callbacks(fragment, key, path + [key])
-                descend(fragment[key], path + [key])
+                descend(value, path + [key])
 
         elif is_list_like(fragment):
             for index in range(len(fragment)):
+                value = fragment[index]
                 fire_callbacks(fragment, index, path + [str(index)])
-                descend(fragment[index], path + [str(index)])
+                descend(value, path + [str(index)])
 
     try:
         descend(spec_dict, path=descend_path)
