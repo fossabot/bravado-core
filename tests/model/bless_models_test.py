@@ -83,9 +83,9 @@ def test_bless_model_adds_model_marker(minimal_swagger_dict):
     }
     swagger_spec = Spec(minimal_swagger_dict)
     bless_models(
-        minimal_swagger_dict['paths']['/endpoint']['post']['responses']['200'],
+        minimal_swagger_dict['paths']['/endpoint']['post']['responses']['200']['schema'],
         'schema',
-        ['paths', '/endpoint', 'post', 'responses', '200'],
+        ['paths', '/endpoint', 'post', 'responses', '200', 'schema'],
         visited_models={},
         swagger_spec=swagger_spec,
     )

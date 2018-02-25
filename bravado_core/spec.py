@@ -26,6 +26,7 @@ from bravado_core.exception import SwaggerValidationError
 from bravado_core.formatter import return_true_wrapper
 from bravado_core.model import bless_models
 from bravado_core.model import collect_models
+from bravado_core.model import MODEL_MARKER
 from bravado_core.model import tag_models
 from bravado_core.resource import build_resources
 from bravado_core.schema import is_dict_like
@@ -595,9 +596,13 @@ def post_process_spec(swagger_spec, on_container_callbacks):
         path = path or []
 
         if is_dict_like(fragment):
-            for key, value in sorted(iteritems(fragment)):
+            sorted_keys = sorted(iterkeys(fragment))
+            for key in sorted_keys:
                 fire_callbacks(fragment, key, path + [key])
                 descend(fragment[key], path + [key])
+
+            if MODEL_MARKER not in sorted_keys and MODEL_MARKER in fragment:
+                fire_callbacks(fragment, MODEL_MARKER, path + [MODEL_MARKER])
 
         elif is_list_like(fragment):
             for index in range(len(fragment)):

@@ -23,9 +23,9 @@ def test_tags_model(minimal_swagger_dict, pet_model_spec):
     minimal_swagger_dict['definitions']['Pet'] = pet_model_spec
     swagger_spec = Spec(minimal_swagger_dict)
     tag_models(
-        minimal_swagger_dict['definitions'],
-        'Pet',
-        ['definitions', 'Pet'],
+        minimal_swagger_dict['definitions']['Pet'],
+        'properties',
+        ['definitions', 'Pet', 'properties'],
         visited_models={},
         swagger_spec=swagger_spec)
     assert pet_model_spec['x-model'] == 'Pet'
@@ -85,9 +85,9 @@ def test_duplicate_model(mock_log, minimal_swagger_dict, pet_model_spec, use_mod
     raised_exception = None
     try:
         tag_models(
-            minimal_swagger_dict['definitions'],
-            'Pet',
-            ['definitions', 'Pet'],
+            minimal_swagger_dict['definitions']['Pet'],
+            'properties',
+            ['definitions', 'Pet', 'properties'],
             visited_models={'Pet': ['definitions', 'Pet']},
             swagger_spec=swagger_spec,
         )

@@ -79,10 +79,7 @@ def tag_models(container, key, path, visited_models, swagger_spec):
     need to represent an object.
 
     INFO: Implementation detail.
-    Respect ``collect_models`` this callback gets executed on the model_spec's parent container.
-    This is needed because this callback could modify (adding MODEL_MARKER) the model_spec;
-    performing this operation when the container represents model_spec will generate errors
-    because we're iterating over an object that gets mutated by the callback.
+    This callback could modify the current ``container`` by adding MODEL_MARKER.
 
     :param container: container being visited
     :param key: attribute in container being visited as a string
@@ -90,20 +87,20 @@ def tag_models(container, key, path, visited_models, swagger_spec):
     :type visited_models: dict (k,v) == (model_name, path)
     :type swagger_spec: :class:`bravado_core.spec.Spec`
     """
-    if len(path) < 2 or path[-2] != 'definitions':
-        return
-    deref = swagger_spec.deref
-    model_spec = deref(container.get(key))
-
-    if not is_object(swagger_spec, model_spec):
+    if len(path) < 3 or path[-3] != 'definitions':
         return
 
-    if deref(model_spec.get(MODEL_MARKER)) is not None:
+    model_spec = container
+
+    if not is_dict_like(model_spec) or not is_object(swagger_spec, model_spec):
         return
 
-    model_name = _get_model_name(model_spec) or key
+    if model_spec.get(MODEL_MARKER) is not None:
+        return
+
+    model_name = _get_model_name(model_spec) or path[-2]
     _register_visited_model(
-        path=path,
+        path=path[:-1],
         model_spec=model_spec,
         model_name=model_name,
         visited_models=visited_models,
@@ -122,10 +119,7 @@ def bless_models(container, key, path, visited_models, swagger_spec):
     determining a model name (ie. has ``title`` attribute defined)
 
     INFO: Implementation detail.
-    Respect ``collect_models`` this callback gets executed on the model_spec's parent container.
-    This is needed because this callback could modify (adding MODEL_MARKER) the model_spec;
-    performing this operation when the container represents model_spec will generate errors
-    because we're iterating over an object that gets mutated by the callback.
+    This callback could modify the current ``container`` by adding MODEL_MARKER.
 
     :param container: container being visited
     :param key: attribute in container being visited as a string
@@ -133,30 +127,24 @@ def bless_models(container, key, path, visited_models, swagger_spec):
     :type visited_models: dict (k,v) == (model_name, path)
     :type swagger_spec: :class:`bravado_core.spec.Spec`
     """
-    if not is_dict_like(container):
-        return
-
-    deref = swagger_spec.deref
-    model_spec = deref(container.get(key))
-
     if (
-        not is_dict_like(model_spec) or
-        not is_object(swagger_spec, model_spec, no_default_type=True) or
+        not is_dict_like(container) or
+        not is_object(swagger_spec, container, no_default_type=True) or
         # NOTE: determine_object_type uses a simple heuristic to determine if a model_spec has a SCHEMA type
         # for this reason is important that model_spec is recognized as model in the most accurate way
         # so we should not rely on default typing of a schema
-        determine_object_type(model_spec) != ObjectType.SCHEMA or
-        deref(model_spec.get(MODEL_MARKER)) is not None
+        determine_object_type(container) != ObjectType.SCHEMA or
+        container.get(MODEL_MARKER) is not None
     ):
         return
 
-    model_name = _get_model_name(model_spec)
+    model_name = _get_model_name(container)
     if not model_name:
         return
 
     _register_visited_model(
-        path=path,
-        model_spec=model_spec,
+        path=path[:-1],
+        model_spec=container,
         model_name=model_name,
         visited_models=visited_models,
         is_blessed=True,
