@@ -2,9 +2,9 @@
 import copy
 import inspect
 import re
+from enum import Enum
 from functools import wraps
 
-from enum import Enum
 from six import iteritems
 from six import iterkeys
 
@@ -171,7 +171,10 @@ def determine_object_type(object_dict):
                 # NOTE: In case the method is mis-determining the type of a schema object, confusing it with a
                 #       response type it will be enough to add, to the object, one key that is not defined
                 #       in ``response_allowed_keys``.  (ie. ``additionalProperties: {}``, implicitly defined be specs)
-                return ObjectType.SCHEMA
+                if object_dict.get('type'):
+                    return ObjectType.SCHEMA
+                else:
+                    return ObjectType.UNKNOWN
 
 
 def strip_xscope(spec_dict):
