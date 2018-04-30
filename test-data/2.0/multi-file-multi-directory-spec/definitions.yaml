@@ -1,0 +1,21 @@
+ErrorResponse:
+  properties:
+    error_code:
+      description: Machine-friendly error code
+      type: string
+    error_description:
+      description: Human-friendly error code
+      type: string
+  required:
+  - error_code
+  type: object
+  x-model: ErrorResponse
+DebugErrorResponse:
+  allOf:
+  - $ref: '#/ErrorResponse'
+  - properties:
+      stacktrace:
+        description: Stringified stacktrace
+        type: string
+  type: object
+  x-model: DebugErrorResponse
