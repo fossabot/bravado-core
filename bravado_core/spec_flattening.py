@@ -254,11 +254,10 @@ def flattened_spec(
             # Minimalistic swagger spec like object
             # it's not a valid spec due to lack of info and paths, but it's good enough to trigger model discovery
             spec_dict={
-                known_mappings_key: {
+                'definitions': {
                     marshal_uri(uri): value
-                    for uri, value in iteritems(known_mappings_value)
+                    for uri, value in iteritems(known_mappings['definitions'])
                 }
-                for known_mappings_key, known_mappings_value in iteritems(known_mappings)
             },
             config={'validate_swagger_spec': False},  # Not validate specs, which are known to not be valid
         )
