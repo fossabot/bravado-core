@@ -1,3 +1,5 @@
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmacisamuele%2Fbravado-core.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmacisamuele%2Fbravado-core?ref=badge_shield)
+
 .. image:: https://img.shields.io/travis/Yelp/bravado-core.svg
   :target: https://travis-ci.org/Yelp/bravado-core?branch=master
 
@@ -86,3 +88,7 @@ License
 
 Bravado is licensed with a `BSD 3-Clause
 License <http://opensource.org/licenses/BSD-3-Clause>`__.
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmacisamuele%2Fbravado-core.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmacisamuele%2Fbravado-core?ref=badge_large)
